@@ -1,0 +1,3 @@
+imdbfiles/
+*.db
+*.db.wal

@@ -125,10 +125,12 @@ import plotly.graph_objects as go
 ratings_df = ratings_df.dropna()
 ratings_df['Season and Episode'] = 'S' +ratings_df['season'].astype(str)+ ' Ep' +ratings_df['episode'].astype(str)
 #fig = px.line(ratings_df.dropna(), x=ratings_df.index, y="rating", title=selected_show.value+' Ratings Over Time')
-fig = go.Figure(go.Scatter(x = ratings_df.index,y=ratings_df.rating))
+fig = go.Figure(go.Scatter(x = ratings_df.index,y=ratings_df.rating,hovertemplate=
+                          ratings_df['Season and Episode'].tolist()))
 seasons = ratings_df['season'].unique()
 season_index = [ratings_df.index[ratings_df['season']==season][0] for season in seasons]
 fig.update_layout(xaxis = dict(tickmode='array',tickvals = season_index,ticktext=ratings_df['Season and Episode'].iloc[season_index].tolist()))
+fig.update_traces(mode='markers+lines', name='')
 plt = zt.PlotlyComponent.from_figure(figure=fig, id = 'plot')"""
 
 [cells.b2b6baf0-0c0f-4a64-aea0-a2e55d88b95c]
