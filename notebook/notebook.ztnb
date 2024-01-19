@@ -109,26 +109,28 @@ WHERE titleId = {show_id}"""
 [cells.d357ea16-d749-4077-be55-905985595a9a]
 cellType = "code"
 code = """
-# import plotly.express as px
-# import plotly.graph_objects as go 
-# ratings_df.dropna()
-# ratings_df['Season and Episode'] = 'S' + ratings_df['season'].astype(str) + ' Ep' + ratings_df['episode'].astype(str)
-# # fig = px.line(ratings_df, x=ratings_df.index, y="rating", title=selected_show.value+' Ratings Over Time')
-# fig = go.Figure(go.Scatter(x = ratings_df.index,y=ratings_df['rating']))
-# fig.update_layout(xaxis = dict(tickmode='array', tickvals=ratings_df.index.tolist(), ticktext=ratings_df['Season and Episode'].tolist()))
-# # fig.update_layout(xaxis = dict(tickmode='array'))
-# plt = zt.PlotlyComponent.from_figure(figure=fig, id = 'plot')
-
-
 import plotly.express as px
-import plotly.graph_objects as go 
+import plotly.graph_objects as go
+import numpy as np
 ratings_df = ratings_df.dropna()
 ratings_df['Season and Episode'] = 'S' +ratings_df['season'].astype(str)+ ' Ep' +ratings_df['episode'].astype(str)
-#fig = px.line(ratings_df.dropna(), x=ratings_df.index, y="rating", title=selected_show.value+' Ratings Over Time')
-fig = go.Figure(go.Scatter(x = ratings_df.index,y=ratings_df.rating,hovertemplate=
-                          ratings_df['Season and Episode'].tolist()))
+fig = go.Figure(go.Scatter(
+                x = ratings_df.index,
+                y=ratings_df.rating, 
+                customdata=np.stack(([ratings_df['Season and Episode'],ratings_df['rating']]),axis=-1),
+                hovertemplate='<br>'.join([
+                              "%{customdata[0]}",
+                              "Rating: %{customdata[1]}"])))
 seasons = ratings_df['season'].unique()
 season_index = [ratings_df.index[ratings_df['season']==season][0] for season in seasons]
+title = ratings_df['title'].values[0]
+# fig.update_traces(
+#   hovertemplate='<br>'.join([
+#     "%{customdata[0]}",
+#     "Rating: %{customdata[1]}"
+#   ])
+# )
+fig.update_layout(title=f'{title} IMDB Ratings', xaxis_title='Episodes',yaxis_title='Rating')
 fig.update_layout(xaxis = dict(tickmode='array',tickvals = season_index,ticktext=ratings_df['Season and Episode'].iloc[season_index].tolist()))
 fig.update_traces(mode='markers+lines', name='')
 plt = zt.PlotlyComponent.from_figure(figure=fig, id = 'plot')"""
@@ -136,6 +138,15 @@ plt = zt.PlotlyComponent.from_figure(figure=fig, id = 'plot')"""
 [cells.b2b6baf0-0c0f-4a64-aea0-a2e55d88b95c]
 cellType = "code"
 code = """
+#Notable Episodes
+#Print out table of n highest rated episodes (user specifies n)
+print(f'Want to binge the best episodes of {title}? Pick how many episodes you want to binge')
+num_episodes_slider = zt.Slider(id = 'num_episodes',
+                                     min = 1,
+                                     max = min(50,len(ratings_df)),
+                                     step = 1, label = 'Number of Episodes',
+                                     thumb_label=True)
 
+print(ratings_df.sort_values(by=['rating'],ascending=False,ignore_index=True)[['Season and Episode','rating']].head(n=num_episodes_slider.value))
 """
 
