@@ -130,6 +130,14 @@ title = ratings_df['title'].values[0]
 #     "Rating: %{customdata[1]}"
 #   ])
 # )
+fig.update_layout(title=f'{title} IMDB Ratings', xaxis_title='Episodes',yaxis_title='Rating')
+title = ratings_df['title'].values[0]
+# fig.update_traces(
+#   hovertemplate='<br>'.join([
+#     "%{customdata[0]}",
+#     "Rating: %{customdata[1]}"
+#   ])
+# )
 fig.update_layout(title=f'{title} IMDb Ratings', xaxis_title='Episodes',yaxis_title='Rating')
 fig.update_layout(xaxis = dict(tickmode='array',tickvals = season_index,ticktext=ratings_df['Season and Episode'].iloc[season_index].tolist()))
 fig.update_traces(mode='markers+lines', name='')
