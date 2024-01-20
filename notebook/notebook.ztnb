@@ -1,4 +1,4 @@
-notebookId = "5bfab266-5422-44c7-88fb-ccfb17e21f84"
+notebookId = "5bfab266-5422-44c7-88fb-ccfb17e21f85"
 
 [cells.cc798104-10de-4eb7-9a64-a2b430656e3e]
 cellType = "code"
@@ -52,18 +52,18 @@ if not os.path.exists(folder_name) and download:
 cellType = "sql"
 variable_name = "top_shows"
 code = """
-CREATE TABLE IF NOT EXISTS top_shows_tbl AS SELECT 
- title.titleID,
- title.title,
- basics.titleType as type,
- basics.startYear as startYear,
- CAST(rate.numVotes as INTEGER) as votes
-FROM read_csv('../imdbfiles/title.akas.tsv.gz', delim='	', quote='', all_varchar=true, header=true, AUTO_DETECT=TRUE) title
-left join read_csv('../imdbfiles/title.basics.tsv.gz', delim='	', quote='', all_varchar=true, header=true, AUTO_DETECT=TRUE) basics
-on title.titleid = basics.tconst
-left join read_csv('../imdbfiles/title.ratings.tsv.gz', delim='	', quote='', all_varchar=true, header=true, AUTO_DETECT=TRUE) rate
-on title.titleid = rate.tconst
-WHERE title.isOriginalTitle = '1' AND type = 'tvSeries' ORDER BY votes DESC LIMIT 500;
+-- CREATE TABLE IF NOT EXISTS top_shows_tbl AS SELECT 
+--  title.titleID,
+--  title.title,
+--  basics.titleType as type,
+--  basics.startYear as startYear,
+--  CAST(rate.numVotes as INTEGER) as votes
+-- FROM read_csv('../imdbfiles/title.akas.tsv.gz', delim='	', quote='', all_varchar=true, header=true, AUTO_DETECT=TRUE) title
+-- left join read_csv('../imdbfiles/title.basics.tsv.gz', delim='	', quote='', all_varchar=true, header=true, AUTO_DETECT=TRUE) basics
+-- on title.titleid = basics.tconst
+-- left join read_csv('../imdbfiles/title.ratings.tsv.gz', delim='	', quote='', all_varchar=true, header=true, AUTO_DETECT=TRUE) rate
+-- on title.titleid = rate.tconst
+-- WHERE title.isOriginalTitle = '1' AND type = 'tvSeries' ORDER BY votes DESC LIMIT 500;
 
 
 SELECT * FROM top_shows_tbl"""
@@ -78,30 +78,30 @@ if selected_show.value != None:
   try:
     show_id = top_shows[top_shows['title_year']==selected_show.value]["titleId"].values[0]
   except:
-    show_id = ''
+    show_id = 'tt0903747'
 else:
-  show_id = ''
+  show_id = 'tt0903747'
 """
 
 [cells.6c756a12-2cfe-4da2-8fe8-a2ab5ef14e9a]
 cellType = "sql"
 variable_name = "ratings_df"
 code = """
-CREATE TABLE IF NOT EXISTS ratings_tbl AS
-SELECT 
- title.title, 
- title.titleId,
- top.votes,
- TRY_CAST(ep.seasonNumber AS INTEGER) as season, 
- TRY_CAST(ep.episodeNumber AS INTEGER) as episode, 
- TRY_CAST(rate.averageRating AS FLOAT) as rating
-FROM read_csv('../imdbfiles/title.episode.tsv.gz', delim='	', quote='', all_varchar=true, header=true, AUTO_DETECT=TRUE) ep
-left join read_csv('../imdbfiles/title.akas.tsv.gz', delim='	', quote='', all_varchar=true, header=true, AUTO_DETECT=TRUE) title
-on ep.parentTconst = title.titleid
- left join read_csv('../imdbfiles/title.ratings.tsv.gz', delim='	', quote='', all_varchar=true, header=true, AUTO_DETECT=TRUE) rate
- on ep.tconst = rate.tconst
-inner join top_shows_tbl top ON title.titleId = top.titleId
-WHERE title.isOriginalTitle = '1'  ORDER BY season, episode;
+-- CREATE TABLE IF NOT EXISTS ratings_tbl AS
+-- SELECT 
+--  title.title, 
+--  title.titleId,
+--  top.votes,
+--  TRY_CAST(ep.seasonNumber AS INTEGER) as season, 
+--  TRY_CAST(ep.episodeNumber AS INTEGER) as episode, 
+--  TRY_CAST(rate.averageRating AS FLOAT) as rating
+-- FROM read_csv('../imdbfiles/title.episode.tsv.gz', delim='	', quote='', all_varchar=true, header=true, AUTO_DETECT=TRUE) ep
+-- left join read_csv('../imdbfiles/title.akas.tsv.gz', delim='	', quote='', all_varchar=true, header=true, AUTO_DETECT=TRUE) title
+-- on ep.parentTconst = title.titleid
+--  left join read_csv('../imdbfiles/title.ratings.tsv.gz', delim='	', quote='', all_varchar=true, header=true, AUTO_DETECT=TRUE) rate
+--  on ep.tconst = rate.tconst
+-- inner join top_shows_tbl top ON title.titleId = top.titleId
+-- WHERE title.isOriginalTitle = '1'  ORDER BY season, episode;
 
 SELECT * FROM ratings_tbl 
 WHERE titleId = {show_id}"""
@@ -131,14 +131,6 @@ title = ratings_df['title'].values[0]
 #   ])
 # )
 fig.update_layout(title=f'{title} IMDB Ratings', xaxis_title='Episodes',yaxis_title='Rating')
-title = ratings_df['title'].values[0]
-# fig.update_traces(
-#   hovertemplate='<br>'.join([
-#     "%{customdata[0]}",
-#     "Rating: %{customdata[1]}"
-#   ])
-# )
-fig.update_layout(title=f'{title} IMDb Ratings', xaxis_title='Episodes',yaxis_title='Rating')
 fig.update_layout(xaxis = dict(tickmode='array',tickvals = season_index,ticktext=ratings_df['Season and Episode'].iloc[season_index].tolist()))
 fig.update_traces(mode='markers+lines', name='')
 plt = zt.PlotlyComponent.from_figure(figure=fig, id = 'plot')"""
@@ -148,13 +140,13 @@ cellType = "code"
 code = """
 #Notable Episodes
 #Print out table of n highest rated episodes (user specifies n)
-print(f'Want to binge the best episodes of {title}? Pick how many episodes you want to binge')
+zt.Text(id='question',text=f'Want to binge the best episodes of {title}? Pick how many episodes you want to binge',type='text-body-1')
 num_episodes_slider = zt.Slider(id = 'num_episodes',
                                      min = 1,
                                      max = min(50,len(ratings_df)),
                                      step = 1, label = 'Number of Episodes',
                                      thumb_label=True)
-
-print(ratings_df.sort_values(by=['rating'],ascending=False,ignore_index=True)[['Season and Episode','rating']].head(n=num_episodes_slider.value))
+zt.DataFrame.from_dataframe(id='ep_list',df=ratings_df.sort_values(by=['rating'],ascending=False,ignore_index=True)[['Season and Episode','rating']].head(n=num_episodes_slider.value))
+# print(ratings_df.sort_values(by=['rating'],ascending=False,ignore_index=True)[['Season and Episode','rating']].head(n=num_episodes_slider.value))
 """
 
